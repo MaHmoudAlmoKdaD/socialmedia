@@ -3,7 +3,7 @@ const Conversation = require("../models/Conversation");
 // NEW CONVERSATION
 router.post("/", async (req, res) => {
   const newConversation = new Conversation({
-    members: [req.body.sendId, req.body.receiverId],
+    members: [req.body.senderId, req.body.receiverId],
   });
   try {
     const savedConversation = await newConversation.save();
@@ -14,5 +14,16 @@ router.post("/", async (req, res) => {
 });
 
 // NEW CONVERSATION OF A USER
-
+router.get("/:userId", async (req, res) => {
+  try {
+    const conversation = await Conversation.find({
+      members: {
+        $in: [req.params.userId],
+      },
+    });
+    res.status(200).json(conversation);
+  } catch (err) {
+    res.status(500).json(err);
+  }
+});
 module.exports = router;
