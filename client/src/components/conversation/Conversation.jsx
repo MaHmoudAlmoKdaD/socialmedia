@@ -6,12 +6,12 @@ const Conversation = ({ conversation, currentUser }) => {
   const [user, setUser] = useState(null);
   const PF = process.env.REACT_APP_PUBLIC_FOLDER;
   useEffect(() => {
-    const freindId = conversation.members.find((memberId) => {
+    const friendId = conversation.members.find((memberId) => {
       return memberId !== currentUser._id;
     });
     const getUsers = async () => {
       axios
-        .get(`/users?userId=${freindId}`)
+        .get(`/users?userId=${friendId}`)
         .then((res) => {
           setUser(res.data);
         })
@@ -23,7 +23,7 @@ const Conversation = ({ conversation, currentUser }) => {
   }, [conversation, currentUser]);
 
   return (
-    <div className="conversation">
+    <div className="conversation" key={1+conversation._id}>
       <img
         className="conversationImg"
         src={

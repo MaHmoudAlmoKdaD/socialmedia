@@ -1,5 +1,5 @@
 import "./messenger.css";
-import React, { useContext, useEffect, useState } from "react";
+import React, { useContext, useEffect, useRef, useState } from "react";
 import Topbar from "./../../components/topbar/Topbar";
 import Conversation from "../../components/conversation/Conversation";
 import Message from "../../components/messege/Message";
@@ -12,6 +12,9 @@ const Messenger = () => {
   const [conversation, setConversation] = useState([]);
   const [currentChat, setCurrentChat] = useState(null);
   const [messages, setMessages] = useState([]);
+  const newMessage = useRef("");
+  const scrollRef = useRef();
+
   useEffect(() => {
     axios
       .get(`conversation/${user?._id}`)
@@ -21,26 +24,42 @@ const Messenger = () => {
       .catch((err) => console.log(err));
   }, [user._id]);
   useEffect(() => {
-    const getMessages = async() => {
+    const getMessages = async () => {
       axios
-        .get(`messages/${currentChat?._id}`)
+        .get(`message/${currentChat?._id}`)
         .then((res) => setMessages(res.data))
         .catch((err) => console.log(err));
     };
     getMessages();
   }, [currentChat]);
+  const handleSendMessage = () => {
+    const message = {
+      conversationId: currentChat,
+      sender: user._id,
+      text: newMessage.current.value,
+    };
+    axios
+      .post("message", message)
+      .then((res) => {
+        setMessages([...messages, res.data]);
+        newMessage.current.value = "";
+      })
+      .catch((err) => console.log(err));
+  };
+  useEffect(() => {
+    scrollRef.current?.scrollIntoView({behavior: "smooth"});
+  }, [messages]);
 
   return (
     <>
-      {console.log("messages",messages)}
       <Topbar />
       <div className="messenger">
         <div className="chatMenu">
           <div className="chatMenuWrapper">
             <input placeholder="Search for friends" className="chatMenuInput" />
             {conversation.map((c) => (
-              <div onClick={() => setCurrentChat(c)}>
-                <Conversation key={c._id} conversation={c} currentUser={user} />
+              <div key={c._id} onClick={() => setCurrentChat(c)}>
+                <Conversation conversation={c} currentUser={user} />
               </div>
             ))}
           </div>
@@ -50,36 +69,24 @@ const Messenger = () => {
             {currentChat ? (
               <>
                 <div className="chatBoxTop" key={currentChat._id}>
-                  <Message own={true} />
-                  <Message />
-                  <Message own={true} />
-                  <Message />
-                  <Message own={true} />
-                  <Message />
-                  <Message own={true} />
-                  <Message />
-                  <Message own={true} />
-                  <Message />
-                  <Message own={true} />
-                  <Message />
-                  <Message own={true} />
-                  <Message />
-                  <Message own={true} />
-                  <Message />
-                  <Message own={true} />
-                  <Message />
-                  <Message own={true} />
-                  <Message />
-                  <Message own={true} />
-                  rgb(108, 102, 102) <Message />
-                  <Message own={true} />
+                  {messages.map((m) => (
+                    <div ref={scrollRef}>
+                      <Message message={m} own={m.sender === user._id} />
+                    </div>
+                  ))}
                 </div>
                 <div className="chatBoxBottom">
                   <textarea
                     placeholder="Write something..."
                     className="chatMessageInput"
+                    ref={newMessage}
                   ></textarea>
-                  <button className="chatSubmitButton">Send</button>
+                  <button
+                    className="chatSubmitButton"
+                    onClick={handleSendMessage}
+                  >
+                    Send
+                  </button>
                 </div>
               </>
             ) : (
