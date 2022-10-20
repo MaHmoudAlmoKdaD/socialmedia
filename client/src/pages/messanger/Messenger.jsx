@@ -6,15 +6,19 @@ import Message from "../../components/messege/Message";
 import ChatOnline from "../../components/chatOnline/ChatOnline";
 import { AuthContext } from "./../../context/AuthContext";
 import axios from "axios";
+import { io } from "socket.io-client";
 
 const Messenger = () => {
   const { user } = useContext(AuthContext);
   const [conversation, setConversation] = useState([]);
   const [currentChat, setCurrentChat] = useState(null);
   const [messages, setMessages] = useState([]);
+  const [socket, setSocket] = useState(null);
   const newMessage = useRef("");
   const scrollRef = useRef();
-
+  useEffect(() => {
+    setSocket(io("ws://localhost:8900"));
+  });
   useEffect(() => {
     axios
       .get(`conversation/${user?._id}`)
@@ -47,7 +51,7 @@ const Messenger = () => {
       .catch((err) => console.log(err));
   };
   useEffect(() => {
-    scrollRef.current?.scrollIntoView({behavior: "smooth"});
+    scrollRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
   return (
