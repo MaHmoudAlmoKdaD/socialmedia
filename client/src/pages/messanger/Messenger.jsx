@@ -13,14 +13,20 @@ const Messenger = () => {
   const [conversation, setConversation] = useState([]);
   const [currentChat, setCurrentChat] = useState(null);
   const [messages, setMessages] = useState([]);
-  const [socket, setSocket] = useState(null);
+  const socket = useRef();
   const newMessage = useRef("");
   const scrollRef = useRef();
+
   useEffect(() => {
-    setSocket(io("ws://localhost:8900"));
-  },[]);
+    socket.current = io("ws://localhost:8900");
+  }, []);
   useEffect(() => {
-    console.log("useeffect 1")
+    socket.current.emit("addUser", user._id);
+    socket.current.on("getUsers", (users) => {
+      console.log(users);
+    });
+  }, [user]);
+  useEffect(() => {
     axios
       .get(`conversation/${user?._id}`)
       .then((res) => {
