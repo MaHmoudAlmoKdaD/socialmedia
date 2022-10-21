@@ -18,8 +18,9 @@ const Messenger = () => {
   const scrollRef = useRef();
   useEffect(() => {
     setSocket(io("ws://localhost:8900"));
-  });
+  },[]);
   useEffect(() => {
+    console.log("useeffect 1")
     axios
       .get(`conversation/${user?._id}`)
       .then((res) => {
@@ -72,9 +73,9 @@ const Messenger = () => {
           <div className="chatBoxWrapper">
             {currentChat ? (
               <>
-                <div className="chatBoxTop" key={currentChat._id}>
+                <div className="chatBoxTop">
                   {messages.map((m) => (
-                    <div ref={scrollRef}>
+                    <div ref={scrollRef} key={m._id}>
                       <Message message={m} own={m.sender === user._id} />
                     </div>
                   ))}
