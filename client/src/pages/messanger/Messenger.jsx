@@ -13,19 +13,35 @@ const Messenger = () => {
   const [conversation, setConversation] = useState([]);
   const [currentChat, setCurrentChat] = useState(null);
   const [messages, setMessages] = useState([]);
+  const [arrivalMessage, setArrivalMessage] = useState(null);
   const socket = useRef();
   const newMessage = useRef("");
   const scrollRef = useRef();
 
   useEffect(() => {
     socket.current = io("ws://localhost:8900");
+    socket.current.on("getMessage", (data) => {
+      setArrivalMessage({
+        sender: data.senderId,
+        text: data.text,
+        createdAt: Date.now(),
+      });
+    });
   }, []);
+
+  useEffect(() => {
+    arrivalMessage &&
+      currentChat?.members.include(arrivalMessage.sender) &&
+      setMessages((prev) => [...prev, arrivalMessage]);
+  }, [arrivalMessage, currentChat]);
+
   useEffect(() => {
     socket.current.emit("addUser", user._id);
     socket.current.on("getUsers", (users) => {
       console.log(users);
     });
   }, [user]);
+
   useEffect(() => {
     axios
       .get(`conversation/${user?._id}`)
@@ -34,6 +50,7 @@ const Messenger = () => {
       })
       .catch((err) => console.log(err));
   }, [user._id]);
+
   useEffect(() => {
     const getMessages = async () => {
       axios
@@ -43,12 +60,25 @@ const Messenger = () => {
     };
     getMessages();
   }, [currentChat]);
+
+  useEffect(() => {
+    scrollRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [messages]);
+
   const handleSendMessage = () => {
     const message = {
       conversationId: currentChat,
       sender: user._id,
       text: newMessage.current.value,
     };
+    const receiverId = currentChat.members.find(
+      (member) => member !== user._id
+    );
+    socket.current.emit("sendMessage", {
+      senderId: user._id,
+      receiverId: receiverId,
+      text: newMessage,
+    });
     axios
       .post("message", message)
       .then((res) => {
@@ -57,9 +87,6 @@ const Messenger = () => {
       })
       .catch((err) => console.log(err));
   };
-  useEffect(() => {
-    scrollRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages]);
 
   return (
     <>
