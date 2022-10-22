@@ -74,11 +74,12 @@ const Messenger = () => {
     const receiverId = currentChat.members.find(
       (member) => member !== user._id
     );
-    socket.current.emit("sendMessage", {
+    const info = {
       senderId: user._id,
       receiverId: receiverId,
       text: newMessage,
-    });
+    };
+    socket.current.emit("sendMessage", info);
     axios
       .post("message", message)
       .then((res) => {
@@ -145,3 +146,5 @@ const Messenger = () => {
 };
 
 export default Messenger;
+
+
