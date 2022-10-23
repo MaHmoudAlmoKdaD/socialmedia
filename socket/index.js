@@ -27,14 +27,18 @@ io.on("connection", (socket) => {
     addUser(userId, socket.id);
     io.emit("getUsers", users);
   });
+  console.log(users);
 
   //send and get message
-  socket.on("sendMessage", ({ senderId, receiverId, text }) => {
-    const user = getUser(receiverId);
-    io.to(user.socketId).emit("getMessage", {
-      senderId,
-      text,
-    });
+  socket.on("sendMessage", async ({ senderId, receiverId, text }) => {
+    const user =  getUser(receiverId);
+    if(user){
+      io.to(user.socketId).emit("getMessage", {
+        senderId,
+        text,
+      });
+    }
+    
   });
 
   // when disconnect
